@@ -5,7 +5,8 @@ function App() {
   const [employees, setEmployees] = useState([]);
   const [form, setForm] = useState({ name: "", email: "", department: "" });
   // const API_URL = "https://employee-management-backend-2-snfi.onrender.com/api/employees";
-  const API_URL = "http://localhost:8080/api/employees";
+  // const API_URL = "http://localhost:8080/api/employees";
+  const API_URL = "https://employee-management-backend-3-pfhs.onrender.com";
 
   // Fetch all employees
   const fetchEmployees = async () => {
