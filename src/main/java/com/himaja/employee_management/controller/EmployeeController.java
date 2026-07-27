@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import com.himaja.employee_management.entity.Employee;
 import com.himaja.employee_management.service.EmployeeService;
 
-@CrossOrigin(origins = "https://employee-management-frontend-rho.vercel.app")
+@CrossOrigin(origins = {"http://localhost:3000",
+    "https://employee-management-frontend-rho.vercel.app"})
 @RestController
 @RequestMapping("/api/employees")
 public class EmployeeController {
