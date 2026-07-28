@@ -410,19 +410,191 @@
 
 // export default App;
 
+// import React, { useEffect, useState } from "react";
+// import "./App.css";
+
+// function App() {
+//   const [employees, setEmployees] = useState([]);
+//   const [form, setForm] = useState({
+//     name: "",
+//     email: "",
+//     department: "",
+//   });
+
+//   const API_URL =
+//     "https://employee-management-backend-3-pfhs.onrender.com/api/employees";
+
+//   // Fetch all employees
+//   const fetchEmployees = async () => {
+//     try {
+//       const res = await fetch(API_URL);
+
+//       if (!res.ok) {
+//         throw new Error(`HTTP Error: ${res.status}`);
+//       }
+
+//       const data = await res.json();
+//       setEmployees(data);
+//     } catch (error) {
+//       console.error("Fetch Error:", error);
+//       alert("Failed to fetch employees.");
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchEmployees();
+//   }, []);
+
+//   // Handle input change
+//   const handleChange = (e) => {
+//     setForm({
+//       ...form,
+//       [e.target.name]: e.target.value,
+//     });
+//   };
+
+//   // Add employee
+//   const addEmployee = async () => {
+//     if (!form.name || !form.email || !form.department) {
+//       alert("All fields are required");
+//       return;
+//     }
+
+//     try {
+//       const res = await fetch(API_URL, {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify(form),
+//       });
+
+//       if (!res.ok) {
+//         throw new Error(`HTTP Error: ${res.status}`);
+//       }
+
+//       setForm({
+//         name: "",
+//         email: "",
+//         department: "",
+//       });
+
+//       fetchEmployees();
+//     } catch (error) {
+//       console.error("Add Employee Error:", error);
+//       alert("Failed to add employee.");
+//     }
+//   };
+
+//   // Delete employee
+//   const deleteEmployee = async (id) => {
+//     try {
+//       const res = await fetch(`${API_URL}/${id}`, {
+//         method: "DELETE",
+//       });
+
+//       if (!res.ok) {
+//         throw new Error(`HTTP Error: ${res.status}`);
+//       }
+
+//       fetchEmployees();
+//     } catch (error) {
+//       console.error("Delete Error:", error);
+//       alert("Failed to delete employee.");
+//     }
+//   };
+
+//   return (
+//     <div className="App">
+//       <h1>👨‍💼 Employee Management System</h1>
+
+//       <div className="form">
+//         <input
+//           type="text"
+//           name="name"
+//           placeholder="Employee Name"
+//           value={form.name}
+//           onChange={handleChange}
+//         />
+
+//         <input
+//           type="email"
+//           name="email"
+//           placeholder="Email Address"
+//           value={form.email}
+//           onChange={handleChange}
+//         />
+
+//         <input
+//           type="text"
+//           name="department"
+//           placeholder="Department"
+//           value={form.department}
+//           onChange={handleChange}
+//         />
+
+        // <button onClick={addEmployee}>➕ Add Employee</button>
+//       </div>
+
+//       <table>
+//         <thead>
+//           <tr>
+//             <th>ID</th>
+//             <th>👤 Name</th>
+//             <th>📧 Email</th>
+//             <th>🏢 Department</th>
+//             <th>⚙️ Action</th>
+//           </tr>
+//         </thead>
+
+//         <tbody>
+//           {employees.length === 0 ? (
+//             <tr>
+//               <td colSpan="5">No employees found.</td>
+//             </tr>
+//           ) : (
+//             employees.map((emp) => (
+//               <tr key={emp.id}>
+//                 <td>{emp.id}</td>
+//                 <td>{emp.name}</td>
+//                 <td>{emp.email}</td>
+//                 <td>{emp.department}</td>
+//                 <td>
+//                   <button onClick={() => deleteEmployee(emp.id)}>
+//                     🗑 Delete
+//                   </button>
+//                 </td>
+//               </tr>
+//             ))
+//           )}
+//         </tbody>
+//       </table>
+//     </div>
+//   );
+// }
+
+// export default App;
+
 import React, { useEffect, useState } from "react";
 import "./App.css";
 
 function App() {
   const [employees, setEmployees] = useState([]);
+
   const [form, setForm] = useState({
     name: "",
     email: "",
+    phone: "",
     department: "",
+    salary: "",
   });
 
+  const [editingId, setEditingId] = useState(null);
+
+  // const API_URL =
+  //   "https://employee-management-backend-3-pfhs.onrender.com/api/employees";
   const API_URL =
-    "https://employee-management-backend-3-pfhs.onrender.com/api/employees";
+    "http://localhost:8080/api/employees";
 
   // Fetch all employees
   const fetchEmployees = async () => {
@@ -453,37 +625,90 @@ function App() {
     });
   };
 
-  // Add employee
-  const addEmployee = async () => {
-    if (!form.name || !form.email || !form.department) {
-      alert("All fields are required");
+  // Add or Update Employee
+  const saveEmployee = async () => {
+    if (
+      !form.name ||
+      !form.email ||
+      !form.phone ||
+      !form.department ||
+      !form.salary
+    ) {
+      alert("All fields are required.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(form.email)) {
+      alert("Enter a valid email address.");
+      return;
+    }
+
+    if (form.phone.length !== 10) {
+      alert("Phone number must contain exactly 10 digits.");
       return;
     }
 
     try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      });
+      let response;
 
-      if (!res.ok) {
-        throw new Error(`HTTP Error: ${res.status}`);
+      if (editingId) {
+        response = await fetch(`${API_URL}/${editingId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...form,
+            salary: Number(form.salary),
+          }),
+        });
+      } else {
+        response = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...form,
+            salary: Number(form.salary),
+          }),
+        });
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to save employee.");
       }
 
       setForm({
         name: "",
         email: "",
+        phone: "",
         department: "",
+        salary: "",
       });
+
+      setEditingId(null);
 
       fetchEmployees();
     } catch (error) {
-      console.error("Add Employee Error:", error);
-      alert("Failed to add employee.");
+      console.error(error);
+      alert("Something went wrong.");
     }
+  };
+
+  // Fill form for editing
+  const editEmployee = (employee) => {
+    setForm({
+      name: employee.name,
+      email: employee.email,
+      phone: employee.phone,
+      department: employee.department,
+      salary: employee.salary,
+    });
+
+    setEditingId(employee.id);
   };
 
   // Delete employee
@@ -494,21 +719,23 @@ function App() {
       });
 
       if (!res.ok) {
-        throw new Error(`HTTP Error: ${res.status}`);
+        throw new Error("Delete failed");
       }
 
       fetchEmployees();
     } catch (error) {
-      console.error("Delete Error:", error);
+      console.error(error);
       alert("Failed to delete employee.");
     }
   };
 
-  return (
+    return (
     <div className="App">
+
       <h1>👨‍💼 Employee Management System</h1>
 
       <div className="form">
+
         <input
           type="text"
           name="name"
@@ -527,48 +754,104 @@ function App() {
 
         <input
           type="text"
+          name="phone"
+          placeholder="Phone Number"
+          value={form.phone}
+          onChange={handleChange}
+        />
+
+        <input
+          type="text"
           name="department"
           placeholder="Department"
           value={form.department}
           onChange={handleChange}
         />
 
-        <button onClick={addEmployee}>➕ Add Employee</button>
+        <input
+          type="number"
+          name="salary"
+          placeholder="Salary"
+          value={form.salary}
+          onChange={handleChange}
+        />
+
+        <button onClick={saveEmployee}>
+          {editingId ? "🔄 Update Employee" : "➕ Add Employee"}
+        </button>
+
       </div>
 
       <table>
+
         <thead>
+
           <tr>
             <th>ID</th>
             <th>👤 Name</th>
             <th>📧 Email</th>
+            <th>📱 Phone</th>
             <th>🏢 Department</th>
-            <th>⚙️ Action</th>
+            <th>💰 Salary</th>
+            <th>⚙️ Actions</th>
           </tr>
+
         </thead>
 
         <tbody>
+
           {employees.length === 0 ? (
+
             <tr>
-              <td colSpan="5">No employees found.</td>
+              <td colSpan="7">No employees found.</td>
             </tr>
+
           ) : (
+
             employees.map((emp) => (
+
               <tr key={emp.id}>
+
                 <td>{emp.id}</td>
+
                 <td>{emp.name}</td>
+
                 <td>{emp.email}</td>
+
+                <td>{emp.phone}</td>
+
                 <td>{emp.department}</td>
+
+                <td>₹ {emp.salary}</td>
+
                 <td>
-                  <button onClick={() => deleteEmployee(emp.id)}>
+
+                  <button
+                    className="edit-btn"
+                    onClick={() => editEmployee(emp)}
+                  >
+                    ✏️ Edit
+                  </button>
+
+                  <button
+                    className="delete-btn"
+                    onClick={() => deleteEmployee(emp.id)}
+                  >
                     🗑 Delete
                   </button>
+
                 </td>
+
               </tr>
+
             ))
+
           )}
+
         </tbody>
+
       </table>
+
     </div>
   );
 }
