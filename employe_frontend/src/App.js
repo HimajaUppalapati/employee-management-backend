@@ -591,10 +591,10 @@ function App() {
 
   const [editingId, setEditingId] = useState(null);
 
-  // const API_URL =
-  //   "https://employee-management-backend-3-pfhs.onrender.com/api/employees";
   const API_URL =
-    "http://localhost:8080/api/employees";
+    "https://employee-management-backend-3-pfhs.onrender.com/api/employees";
+  // const API_URL =
+  //   "http://localhost:8080/api/employees";
 
   // Fetch all employees
   const fetchEmployees = async () => {
